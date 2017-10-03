@@ -35,6 +35,10 @@ def custom_score(game, player):
         The heuristic value of the current game state to the specified player.
     """
     # TODO: finish this function!
+    moves=float(len(game.get_legal_moves(game.active_player)))
+    moves_opponent=float(len(game.get_legal_moves(game.inactive_player)))
+
+    return moves-moves_opponent
     raise NotImplementedError
 
 
@@ -112,6 +116,7 @@ class IsolationPlayer:
         positive value large enough to allow the function to return before the
         timer expires.
     """
+
     def __init__(self, search_depth=3, score_fn=custom_score, timeout=10.):
         self.search_depth = search_depth
         self.score = score_fn
@@ -213,7 +218,52 @@ class MinimaxPlayer(IsolationPlayer):
             raise SearchTimeout()
 
         # TODO: finish this function!
+
+        if depth==0:
+            return self.score(game,self)
+
+        bestScore = -1
+        bestMove = (-1, -1)
+
+        for move in game.get_legal_moves():
+            v = self.max_value(game.forecast_move(move), depth - 1)
+            if v > bestScore:
+                bestScore = v
+                bestMove = move
+
+        return bestMove
+
         raise NotImplementedError
+
+    def min_value(self, gameState, depth):
+        """ Return the value for a win (+1) if the game is over,
+        otherwise return the minimum value over all legal child
+        nodes.
+        """
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+        v = float("inf")
+        if(depth==0):
+            return self.score(gameState,gameState.active_player)
+
+        for m in gameState.get_legal_moves():
+            v = min(v, self.max_value(gameState.forecast_move(m), depth-1))
+        return v
+
+    def max_value(self, gameState, depth):
+        """ Return the value for a loss (-1) if the game is over,
+        otherwise return the maximum value over all legal child
+        nodes.
+        """
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+        v = float("-inf")
+        if (depth==0):
+            return self.score(gameState, gameState.active_player)
+
+        for m in gameState.get_legal_moves():
+            v = max(v, self.min_value(gameState.forecast_move(m), depth-1))
+        return v
 
 
 class AlphaBetaPlayer(IsolationPlayer):
